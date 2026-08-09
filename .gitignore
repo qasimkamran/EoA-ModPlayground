@@ -73,3 +73,12 @@ Plugins/**/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+# Runtime logs
+# Keep the directory itself in the repository via logs/.gitkeep, but ignore
+# collected logs and temporary staging contents.
+logs/*
+!logs/.gitkeep
+# Generated mod packages
+# Keep the output directory available after cloning without tracking builds.
+dist/*
+!dist/.gitkeep
