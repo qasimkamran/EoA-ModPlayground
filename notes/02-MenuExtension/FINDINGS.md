@@ -30,4 +30,4 @@ WBP_Console_MainMenu_C
 ```
 
 - `WBP_GameAnnounce_B_C` - One-off prompts
-    This prompt displayed after trying to hit 'Log Out' three times at end of gameplay.
+  <br>*This prompt displayed after trying to hit 'Log Out' three times at end of gameplay.*
