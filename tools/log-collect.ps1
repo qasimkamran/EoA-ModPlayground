@@ -3,8 +3,7 @@
 [CmdletBinding()]
 param(
     [Parameter()]
-    [ValidateNotNullOrEmpty()]
-    [string]$UE4SSModsPath = "C:\Program Files (x86)\Echoes of Aincrad\game\EchoesofAincrad\Binaries\Win64\ue4ss\Mods",
+    [string]$UE4SSModsPath,
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]
@@ -20,6 +19,23 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+if ([string]::IsNullOrWhiteSpace($UE4SSModsPath)) {
+    $RepoRoot = Split-Path -Parent $PSScriptRoot
+    $EnvFilePath = Join-Path $RepoRoot ".env.ps1"
+
+    if (-not (Test-Path -LiteralPath $EnvFilePath -PathType Leaf)) {
+        throw "Missing local environment file: $EnvFilePath. Copy .env.example.ps1 to .env.ps1 and set EOA_GAME_PATH."
+    }
+
+    . $EnvFilePath
+
+    if ([string]::IsNullOrWhiteSpace($env:EOA_GAME_PATH)) {
+        throw "EOA_GAME_PATH is not set in $EnvFilePath."
+    }
+
+    $UE4SSModsPath = Join-Path $env:EOA_GAME_PATH "EchoesofAincrad\Binaries\Win64\ue4ss\Mods"
+}
+
 if (-not (Test-Path -LiteralPath $UE4SSModsPath -PathType Container)) {
     throw "UE4SS Mods directory does not exist: $UE4SSModsPath"
 }
@@ -33,6 +49,22 @@ if (-not $NoWait) {
 }
 
 New-Item -ItemType Directory -Path $CentralLogsPath -Force | Out-Null
+
+# The per-mod logs only contain messages explicitly written by our Lua code.
+# Preserve UE4SS's runtime log as well because hook registration failures and
+# uncaught Lua errors are reported there.
+$ue4ssRootPath = Split-Path -Parent $UE4SSModsPath
+$ue4ssLogPath = Join-Path $ue4ssRootPath "UE4SS.log"
+
+if (Test-Path -LiteralPath $ue4ssLogPath -PathType Leaf) {
+    $runtimeLogTimestamp = (Get-Item -LiteralPath $ue4ssLogPath).LastWriteTime.ToString("yyyy-MM-dd_HH-mm-ss")
+    $runtimeLogDestination = Join-Path $CentralLogsPath "UE4SS-$runtimeLogTimestamp.log"
+    Copy-Item -LiteralPath $ue4ssLogPath -Destination $runtimeLogDestination -Force
+    Write-Host "Collected UE4SS runtime log -> $runtimeLogDestination"
+}
+else {
+    Write-Warning "UE4SS runtime log was not found: $ue4ssLogPath"
+}
 
 # Moving into a repository-local staging directory first ensures that a log is
 # removed from the game directory before aggregation. If aggregation fails, the

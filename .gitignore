@@ -82,3 +82,6 @@ logs/*
 # Keep the output directory available after cloning without tracking builds.
 dist/*
 !dist/.gitkeep
+
+# Local project configuration
+.env.ps1

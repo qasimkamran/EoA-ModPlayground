@@ -21,9 +21,19 @@ $ErrorActionPreference = "Stop"
 # ------------------------------------------------------------
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
+$EnvFilePath = Join-Path $RepoRoot ".env.ps1"
 
-# Change this to wherever UE4SS/Mods lives for Echoes of Aincrad.
-$UE4SSModsPath = "C:\Program Files (x86)\Echoes of Aincrad\game\EchoesofAincrad\Binaries\Win64\ue4ss\Mods"
+if (-not (Test-Path -LiteralPath $EnvFilePath -PathType Leaf)) {
+    throw "Missing local environment file: $EnvFilePath. Copy .env.example.ps1 to .env.ps1 and set EOA_GAME_PATH."
+}
+
+. $EnvFilePath
+
+if ([string]::IsNullOrWhiteSpace($env:EOA_GAME_PATH)) {
+    throw "EOA_GAME_PATH is not set in $EnvFilePath."
+}
+
+$UE4SSModsPath = Join-Path $env:EOA_GAME_PATH "EchoesofAincrad\Binaries\Win64\ue4ss\Mods"
 
 $BuildScriptPath = Join-Path $PSScriptRoot "build.ps1"
 $PackagedModPath = Join-Path $RepoRoot "dist\$ModName"
