@@ -85,3 +85,4 @@ dist/*
 
 # Local project configuration
 .env.ps1
+.env
