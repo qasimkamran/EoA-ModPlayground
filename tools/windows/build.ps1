@@ -22,6 +22,7 @@ $ModsRoot = Join-Path $RepoRoot "mods"
 $SourceModPath = Join-Path $ModsRoot $ModName
 $SourceScriptsPath = Join-Path $SourceModPath "Scripts"
 $SharedLibPath = Join-Path $RepoRoot "lib"
+$LocalLibPath = Join-Path $SourceModPath "lib"
 $DistRoot = Join-Path $RepoRoot "dist"
 $PackagedModPath = Join-Path $DistRoot $ModName
 $PackagedScriptsPath = Join-Path $PackagedModPath "Scripts"
@@ -94,6 +95,20 @@ if (Test-Path -LiteralPath $SharedLibPath -PathType Container) {
         -Destination $PackagedLibPath `
         -Recurse `
         -Force
+}
+
+# Mod-local libraries override shared libraries with the same name and are
+# packaged beneath Scripts/lib so Lua can load them with require("lib.*").
+if (Test-Path -LiteralPath $LocalLibPath -PathType Container) {
+    New-Item -ItemType Directory -Path $PackagedLibPath -Force | Out-Null
+
+    Copy-Item `
+        -Path (Join-Path $LocalLibPath "*") `
+        -Destination $PackagedLibPath `
+        -Recurse `
+        -Force
+
+    Remove-Item -LiteralPath (Join-Path $PackagedModPath "lib") -Recurse -Force
 }
 
 $LuaFiles = @(

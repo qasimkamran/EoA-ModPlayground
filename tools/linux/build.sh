@@ -51,6 +51,7 @@ mods_root="$repo_root/mods"
 source_mod_path="$mods_root/$mod_name"
 source_scripts_path="$source_mod_path/Scripts"
 shared_lib_path="$repo_root/lib"
+local_lib_path="$source_mod_path/lib"
 dist_root="$repo_root/dist"
 packaged_mod_path="$dist_root/$mod_name"
 packaged_scripts_path="$packaged_mod_path/Scripts"
@@ -76,6 +77,12 @@ cp -a -- "$source_mod_path/." "$packaged_mod_path/"
 if [[ -d $shared_lib_path ]]; then
     mkdir -p -- "$packaged_lib_path"
     cp -a -- "$shared_lib_path/." "$packaged_lib_path/"
+fi
+
+if [[ -d $local_lib_path ]]; then
+    mkdir -p -- "$packaged_lib_path"
+    cp -a -- "$local_lib_path/." "$packaged_lib_path/"
+    rm -rf -- "$packaged_mod_path/lib"
 fi
 
 mapfile -d '' lua_files < <(find "$packaged_scripts_path" -type f -name '*.lua' -print0 | sort -z)
